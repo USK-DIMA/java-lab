@@ -7,6 +7,24 @@
     <groupId>uskov-dmitry</groupId>
     <artifactId>java-lab</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>java-lab-server</module>
+        <module>java-lab-client</module>
+    </modules>
+    <packaging>pom</packaging>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20160212</version>
+        </dependency>
 
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+
+    </dependencies>
 </project>

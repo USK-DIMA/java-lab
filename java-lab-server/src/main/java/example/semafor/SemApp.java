@@ -1,0 +1,40 @@
+package example.semafor;
+
+import java.util.*;
+import java.util.concurrent.*;
+
+public class SemApp {
+    public static void main(String[] args)
+    {
+        Runnable limitedCall = new Runnable() {
+            final Random rand = new Random();
+            final Semaphore semaphore = new Semaphore(3);
+            int count = 0;
+            public void run()
+            {
+                int time = rand.nextInt(15);
+                int num = count++;
+
+                try
+                {
+                    semaphore.acquire();
+
+                    System.out.println("Executing " +"long-running action for " +time + " seconds... #" + num);
+
+                    Thread.sleep(time * 1000);
+
+                    System.out.println("Done with #" +
+                            num + "!");
+
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    semaphore.release();
+                }
+            }
+        };
+
+        for (int i=0; i<10; i++)
+            new Thread(limitedCall).start();
+    }
+}

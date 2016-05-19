@@ -1,4 +1,4 @@
-import java.util.concurrent.locks.Lock;
+package example.reentrantLock;
 
 /**
  * Created by Dmitry on 17.05.2016.
@@ -18,14 +18,7 @@ public class Main {
                 testLook.func("p2");
             }
         };
-
         thread2.start();
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        thread2.interrupt();
 
     }
 }
