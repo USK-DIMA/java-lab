@@ -6,6 +6,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import ru.uskov.dmitry.Property;
@@ -14,10 +15,7 @@ import ru.uskov.dmitry.view.MainForm;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 public class ClientService {
 
@@ -40,7 +38,7 @@ public class ClientService {
                     return sendRequest("");
                 }
             });
-            RequestInfo requestInfo = new RequestInfo("Thread "+ (i+1), s, false);
+            RequestInfo requestInfo = new RequestInfo("Thread "+ (i+1), s);
             responses.add(requestInfo);
         }
         return responses;
@@ -58,16 +56,66 @@ public class ClientService {
             HttpPost httppost = new HttpPost(Property.JSON_TO_URL);
 
             StringEntity params =new StringEntity("details="+object.toString());
-
             httppost.setEntity(params);
-            //Execute and get the response.
+
             HttpResponse response = httpClient.execute(httppost);
 
-            //// TODO: 19.05.2016 Почемуто метод срабатывает очень быстро, хотя на сервере пауза аж в 10 секунд поставим здесь ещё паузу
-
+            return EntityUtils.toString(response.getEntity());
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return "Good!";
+        return null;
+    }
+
+
+
+    /**
+     * Анализирует состояние потоков и возвращает массив строк, которые и выведуться на экран.
+     * Анализируюя ответы, определяет, все ли запросы выполнены, и в случае, если они выполнены все, прекращает обновление
+     * @param responses
+     * @return
+     */
+
+
+    /**
+     * Анализирует состояние потоков и записывает в  массив строк результаты
+     * @param responses информация о запросах
+     * @param responseString массив для записи результатов
+     * @return true, если все потоки окончили свою работу
+     */
+    public boolean getResponseString(List<RequestInfo> responses, String[] responseString) {
+        log.info("START RESPONSES READING");
+        boolean allResposeHaveReceived = true;
+
+        for(int i=0; i<responses.size(); i++){
+            RequestInfo requestInfo = responses.get(i);
+            Future<String> future = requestInfo.getFuture();
+            try {
+                log.info("Start reading FUTURE in "+ requestInfo.getThreadName());
+                String result;
+                if (future.isDone()) {
+                    result = future.get();
+                    if(result==null){
+                        result="";
+                        requestInfo.setStatus(RequestInfo.Status.RES_ERR);
+                    }
+                    else {
+                        requestInfo.setStatus(RequestInfo.Status.COMPLIT);
+                    }
+                } else {
+                    result="-";
+                    allResposeHaveReceived = false;
+                }
+                responseString[i] = requestInfo.getThreadName() + " : "+requestInfo.getStatus()+" : "+result;
+                log.info("Readed in future: "+responseString[i]);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
+        }
+        log.info("allResposeHaveReceived :" +allResposeHaveReceived);
+        return allResposeHaveReceived;
     }
 }

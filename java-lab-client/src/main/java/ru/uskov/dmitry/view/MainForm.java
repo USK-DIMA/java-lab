@@ -58,7 +58,7 @@ public class MainForm {
     /**
      * true, если требуется обновлять список на экране
      */
-    boolean mustUpdate;
+    boolean listMustUpdate;
 
     public MainForm(ClientService clientService) {
         this.clientService = clientService;
@@ -73,7 +73,7 @@ public class MainForm {
         responseList.setModel(listModel);
         sendButtonLock = new ReentrantLock();
         sendRequestButton.addMouseListener(new SendRequestsButtonLestener());
-        mustUpdate = false;
+        listMustUpdate = false;
     }
 
     public void show() {
@@ -91,12 +91,13 @@ public class MainForm {
             List<RequestInfo> resp = responses;
             public void run() {
                 log.info("read Resposes");
-                responseString = getResponseString(resp);
+                responseString = new String[responses.size()];
+                listMustUpdate = !clientService.getResponseString(resp, responseString);
                 updateList(responseString);
-                interruptListUpdateExecutorService(!mustUpdate);
+                interruptListUpdateExecutorService(!listMustUpdate);
             }
         };
-        mustUpdate = true;
+        listMustUpdate = true;
         listUpdateExecutorService.scheduleAtFixedRate(runnable, 0, 1, TimeUnit.SECONDS);
 
     }
@@ -116,47 +117,7 @@ public class MainForm {
     }
 
 
-    /**
-     * Анализирует состояние потоков и возвращает массив строк, которые и выведуться на экран.
-     * Анализируюя ответы, определяет, все ли запросы выполнены, и в случае, если они выполнены все, прекращает обновление
-     * @param responses
-     * @return
-     */
-    private String[] getResponseString(List<RequestInfo> responses) {
-        log.info("START READING RESPONSES");
-        String[] responseString = new String[responses.size()];
-        boolean allResposeHaveReceived = true;
 
-        for(int i=0; i<responses.size(); i++){
-            RequestInfo requestInfo = responses.get(i);
-            if(!requestInfo.isCompleted()) {
-
-                Future<String> future = requestInfo.getFuture();
-                String threadName = requestInfo.getThreadName();
-                try {
-                    log.info("Start reading FUTURE in "+ threadName);
-                    if (future.isDone()) {
-                        String result = future.get();
-                        log.info(threadName+" : "+result);
-                        responseString[i] = threadName + ": " + result;
-                        responses.get(i).setCompleted(true);
-                    } else {
-                        log.info(threadName+" : existings");
-                        responseString[i] = threadName + ": existings";
-                        allResposeHaveReceived = false;
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        }
-        log.info("allResposeHaveReceived :" +allResposeHaveReceived);
-        mustUpdate = !allResposeHaveReceived;
-        return responseString;
-    }
 
     /**
      * Прерывает обновление списка ответов, если boolean interrupt = true;
@@ -177,7 +138,7 @@ public class MainForm {
     private int readCountRequests() {
         String responseCount = textField1.getText();
         //TODO Реализовать считывание кол-ва из textField1
-        return 5;
+        return 8;
     }
 
 

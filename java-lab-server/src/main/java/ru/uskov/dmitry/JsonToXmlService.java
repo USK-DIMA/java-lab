@@ -13,6 +13,8 @@ public class JsonToXmlService {
 
     private static final Logger log = Logger.getLogger(JsonToXmlService.class);
 
+    private static final Semaphore semaphore = new Semaphore(Property.SEMAPHORE_COUNT);
+
     public JSONObject getJsonByRequest(HttpServletRequest request) throws JSONException {
         JSONObject jsonObj = new JSONObject();
         Map<String,String[]> params = request.getParameterMap();
@@ -25,10 +27,10 @@ public class JsonToXmlService {
     }
 
     public String getXmlByJson(JSONObject json) {
-        final Semaphore semaphore = new Semaphore(Property.SEMAPHORE_COUNT);//// TODO: 19.05.2016 по идее, при такой реализации должны сначала три потока войти, потом остальные, но в клиенете все 5 поток возвращают результат одновременно 
         try {
             semaphore.acquire();
-            pause(10000);
+            log.info("Waiting XmlToJson "+semaphore.getQueueLength()+ "threads");
+            pause(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -36,11 +38,7 @@ public class JsonToXmlService {
             semaphore.release();
         }
         //TODO реализовать тело метода
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "    <test>\n" +
-                "        <user>admin</user>\n" +
-                "        <password>12345</password>\n" +
-                "    </test>";
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?><test><user>admin</user><password>12345</password></test>";
     }
 
 

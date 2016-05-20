@@ -9,13 +9,13 @@ public class RequestInfo {
 
     private Future<String> future;
 
-    private boolean completed;
+    private Status status;
 
 
-    public RequestInfo(String threadName, Future<String> future, boolean status) {
+    public RequestInfo(String threadName, Future<String> future) {
         this.threadName = threadName;
         this.future = future;
-        this.completed = status;
+        this.status = Status.EXECUTE;
     }
 
     public String getThreadName() {
@@ -34,11 +34,16 @@ public class RequestInfo {
         this.future = future;
     }
 
-    public boolean isCompleted() {
-        return completed;
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
+    public Status getStatus() {
+        return status;
     }
+
+    public enum Status {
+        EXECUTE, COMPLIT, RES_ERR
+    }
+
 }
