@@ -18,9 +18,10 @@ public class MainForm {
     private JFrame frame;
 
     private JPanel mainPanel;
-    private JTextField textField1;
+    private JTextField countThreadtextField;
     private JButton sendRequestButton;
     private JList responseList;
+    private JLabel statusLabel;
 
     private static final Logger log = Logger.getLogger(MainForm.class);
 
@@ -63,7 +64,7 @@ public class MainForm {
     public MainForm(ClientService clientService) {
         this.clientService = clientService;
 
-        frame = new JFrame("MainForm");
+        frame = new JFrame("Java-lab-Client");
         frame.setContentPane(mainPanel);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(BORDER_SPACE, BORDER_SPACE, BORDER_SPACE, BORDER_SPACE));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -85,7 +86,7 @@ public class MainForm {
      * @param responses
      */
     private void printResponseInfo(final List<RequestInfo> responses) {
-
+        setStatus("Исполняется");
         listUpdateExecutorService = Executors.newScheduledThreadPool(1);
         Runnable runnable = new Runnable() {
             List<RequestInfo> resp = responses;
@@ -108,12 +109,13 @@ public class MainForm {
      */
     private void updateList(String[] responseString) {
         log.info("Update list on the Display");
-        listModel.clear();
+        listModel = new DefaultListModel();
         log.info("clear List");
         for(int i=0; i<responseString.length; i++) {
             listModel.addElement(responseString[i]);
             log.info("Added element on list: "+responseString[i]);
         }
+        responseList.setModel(listModel);
     }
 
 
@@ -126,6 +128,7 @@ public class MainForm {
     private void interruptListUpdateExecutorService(boolean interrupt) {
         if(interrupt && listUpdateExecutorService!=null){
             log.info("Interrupt listUpdaterExecutorService");
+            setStatus("Готово");
             setSendButtonEnable();
             listUpdateExecutorService.shutdown();
         }
@@ -136,9 +139,9 @@ public class MainForm {
      * @return
      */
     private int readCountRequests() {
-        String responseCount = textField1.getText();
-        //TODO Реализовать считывание кол-ва из textField1
-        return 8;
+        String responseCount = countThreadtextField.getText();
+        int count = Integer.parseInt(responseCount);
+        return count;
     }
 
 
@@ -163,9 +166,19 @@ public class MainForm {
     private class SendRequestsButtonLestener implements MouseListener{
 
         public void mouseClicked(MouseEvent e) {
+            int count;
+            try {
+                count = readCountRequests();
+            }
+            catch (Exception exep){
+                log.warn("Incorrect value of thread count");
+                setStatus("Некорректное число запросов");
+                return;
+            }
+            responses = clientService.sendRequest(count);
             setSendButtonDisable();
-            responses = clientService.sendRequest(readCountRequests());
             printResponseInfo(responses);
+
         }
 
         public void mousePressed(MouseEvent e) {
@@ -183,6 +196,10 @@ public class MainForm {
         public void mouseExited(MouseEvent e) {
 
         }
+    }
+
+    private void setStatus(String s) {
+        statusLabel.setText(s);
     }
 
 }

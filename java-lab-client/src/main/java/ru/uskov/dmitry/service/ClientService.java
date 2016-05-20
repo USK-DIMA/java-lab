@@ -8,10 +8,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
-import org.json.JSONObject;
 import ru.uskov.dmitry.Property;
 import ru.uskov.dmitry.model.RequestInfo;
-import ru.uskov.dmitry.view.MainForm;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +18,8 @@ import java.util.concurrent.*;
 public class ClientService {
 
     private static final Logger log = Logger.getLogger(ClientService.class);
+
+    private static final String REQUEST = "{\"phonetype\":\"N95\",\"cat\":\"WP\"}";
 
     /**
      * Ассинхронно отправляет запросы на сервер
@@ -35,7 +35,7 @@ public class ClientService {
 
             Future<String> s= ex.submit(new Callable<String>() {
                 public String call() throws Exception {
-                    return sendRequest("");
+                    return sendRequest(REQUEST);
                 }
             });
             RequestInfo requestInfo = new RequestInfo("Thread "+ (i+1), s);
@@ -44,37 +44,35 @@ public class ClientService {
         return responses;
     }
 
+    /**
+     * Отправляет POST запрос
+     * @param reques запрос
+     * @return ответ. В случае возникновения ошибок возвращает null
+     */
     private  String sendRequest(String reques) {
-        //TODO пока что запрос захордкожен и возвращающее значение захордкожено. Возвращ. знаение должно возвращаться из HttpResponse response
+        log.info("Sending request: "+reques);
+        //TODO реализовать time-out соединения. По истечению времени сделать запись в log и вернуть null
         try {
-
-            JSONObject object = new JSONObject();
-            object.put("user", "admin");
-            object.put("password", "1234");
-
             HttpClient httpClient = HttpClientBuilder.create().build();
+
             HttpPost httppost = new HttpPost(Property.JSON_TO_URL);
 
-            StringEntity params =new StringEntity("details="+object.toString());
+            StringEntity params =new StringEntity("details="+reques);
             httppost.setEntity(params);
 
             HttpResponse response = httpClient.execute(httppost);
 
-            return EntityUtils.toString(response.getEntity());
+            String stringResponse =EntityUtils.toString(response.getEntity());
+
+            log.info("Received response \"" +stringResponse+"\" by request \""+reques+"\"");
+            return stringResponse;
         } catch (Exception e) {
+            log.info("Exception in httpClient.execute: " +e);
             e.printStackTrace();
+            return null;
         }
-        return null;
     }
 
-
-
-    /**
-     * Анализирует состояние потоков и возвращает массив строк, которые и выведуться на экран.
-     * Анализируюя ответы, определяет, все ли запросы выполнены, и в случае, если они выполнены все, прекращает обновление
-     * @param responses
-     * @return
-     */
 
 
     /**
