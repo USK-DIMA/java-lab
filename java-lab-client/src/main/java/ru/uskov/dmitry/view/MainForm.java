@@ -48,12 +48,12 @@ public class MainForm {
     /**
      * Объект, отвечающий за ассинхронное обновление списка
      */
-    ScheduledExecutorService listUpdateExecutorService;
+    private ScheduledExecutorService listUpdateExecutorService;
 
     /**
      * Блокировка для обработчика кнопки "Отправить". Блокировка стоит, пока все запросы не получат ответ
      */
-    Lock sendButtonLock;
+    private Lock sendButtonLock;
 
 
     /**
@@ -148,7 +148,7 @@ public class MainForm {
     /**
      * делает кнопку на экране не активной и ставит блокировку на обработчик этой кнопки
      */
-    void setSendButtonDisable(){
+    private void setSendButtonDisable(){
         log.info("Disable button");
         sendRequestButton.setEnabled(false);
         sendButtonLock.lock();
@@ -157,7 +157,7 @@ public class MainForm {
     /**
      * делает кнопку на экране активной и снимает блокировку с обработчика этой кнопки
      */
-    void setSendButtonEnable(){
+    private void setSendButtonEnable(){
         log.info("Enable button");
         sendRequestButton.setEnabled(true);
         sendButtonLock.unlock();
@@ -170,7 +170,7 @@ public class MainForm {
             try {
                 count = readCountRequests();
             }
-            catch (Exception exep){
+            catch (NumberFormatException exep){
                 log.warn("Incorrect value of thread count");
                 setStatus("Некорректное число запросов");
                 return;

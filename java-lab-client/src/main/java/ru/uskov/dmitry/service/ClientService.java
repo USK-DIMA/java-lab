@@ -54,12 +54,10 @@ public class ClientService {
         //TODO реализовать time-out соединения. По истечению времени сделать запись в log и вернуть null
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
-
-            HttpPost httppost = new HttpPost(Property.JSON_TO_URL);
-
+            HttpPost httppost = new HttpPost(Property.JSON_TO_XML_URL);
             StringEntity params =new StringEntity("details="+reques);
+            httppost.addHeader("content-type", "application/x-www-form-urlencoded");
             httppost.setEntity(params);
-
             HttpResponse response = httpClient.execute(httppost);
 
             String stringResponse =EntityUtils.toString(response.getEntity());

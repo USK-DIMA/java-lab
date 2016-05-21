@@ -10,6 +10,7 @@
     <modules>
         <module>java-lab-server</module>
         <module>java-lab-client</module>
+        <module>pattern</module>
     </modules>
     <packaging>pom</packaging>
 
